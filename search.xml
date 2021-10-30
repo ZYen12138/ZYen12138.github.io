@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>十月周报（四）</title>
+      <link href="/2021/10/30/%E5%8D%81%E6%9C%88%E5%91%A8%E6%8A%A5%EF%BC%88%E5%9B%9B%EF%BC%89/"/>
+      <url>/2021/10/30/%E5%8D%81%E6%9C%88%E5%91%A8%E6%8A%A5%EF%BC%88%E5%9B%9B%EF%BC%89/</url>
+      
+        <content type="html"><![CDATA[<h3 id="上周学习回顾："><a href="#上周学习回顾：" class="headerlink" title="上周学习回顾："></a>上周学习回顾：</h3><p>学习内容：</p><ul><li>复现完TP-LINK WR-TL841N，还有点未收尾</li><li>尝试<code>kernel pwn</code>中的<code>ret2user</code>，但是没写完</li><li>整理完最近学习的堆利用</li></ul><p><code>get</code>到的小<code>tips</code>：</p><ul><li><p>暴力覆盖使得<code>put</code>的时候没有<code>&quot;\x00&quot;</code>泄露<code>libc</code></p><p>———-<em>上周计划是否完成：完成程度一般</em></p></li></ul><h3 id="下周学习计划"><a href="#下周学习计划" class="headerlink" title="下周学习计划"></a>下周学习计划</h3><ul><li>阅读《程序员的自我修养》理解一些<code>linux</code>操作系统中的分页（优先级：5）</li><li>看看TP-LINK WR-TL841N还有啥要补充的，接着补充完（优先级：2）</li><li>尝试在<code>telnet</code>里面打包文件系统（上周又又未完成）（优先级：4）</li><li>完成<code>kernel pwn</code>，加深对内核的理解（优先级：3）</li><li>尝试挖掘路由器的漏洞（优先级：1）</li></ul><p>PS：优先级越小代表任务越重要！</p><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>有个小喜事—-进入了<code>chaMD5</code>团队的IOT小队，认识了一些大哥，也能交流交流了….准备买点设备挖点洞了，选择了一个小厂的企业级路由器来玩，飘了，复现了俩三个洞就敢挑战真实的挖洞了，希望能有个好开端，冲！！！这周学习的进度还是没赶上去，原因一是要做讲课的PPT，原因二是<code>qemu</code>模拟太麻了，怎么会这么麻，加油吧！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 传说中的小报告之周报 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 周报 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>十月周报（三）</title>
       <link href="/2021/10/24/%E5%8D%81%E6%9C%88%E5%91%A8%E6%8A%A5%EF%BC%88%E4%B8%89%EF%BC%89/"/>
       <url>/2021/10/24/%E5%8D%81%E6%9C%88%E5%91%A8%E6%8A%A5%EF%BC%88%E4%B8%89%EF%BC%89/</url>
