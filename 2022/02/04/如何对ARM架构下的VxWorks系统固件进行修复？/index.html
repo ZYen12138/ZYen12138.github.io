@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>如何对ARM架构下的VxWorks系统固件进行修复？ | 欢迎来到ZYen的小世界！</title><meta name="keywords" content="IOT"><meta name="author" content="ZYen,1193161901@qq.com"><meta name="copyright" content="ZYen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="随着学习的深入，接触的设备已经慢慢的从一些简单的路由器向其他的智能设备开始扩散，就会碰到更多看起来比较复杂的固件，就比如RTOS的固件，当用常规的方法—-binwalk对它进行解包的时候，并不能直接看见文件系统里面的内容，笔者一开始接触这类系统十分的困惑，在研究完修改的过程之后，记录一下学习的过程。  RTOS介绍RTOS的全称为Real-time operating system，翻译过来就是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何对ARM架构下的VxWorks系统固件进行修复？">
+<meta property="og:url" content="http://example.com/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/index.html">
+<meta property="og:site_name" content="欢迎来到ZYen的小世界！">
+<meta property="og:description" content="随着学习的深入，接触的设备已经慢慢的从一些简单的路由器向其他的智能设备开始扩散，就会碰到更多看起来比较复杂的固件，就比如RTOS的固件，当用常规的方法—-binwalk对它进行解包的时候，并不能直接看见文件系统里面的内容，笔者一开始接触这类系统十分的困惑，在研究完修改的过程之后，记录一下学习的过程。  RTOS介绍RTOS的全称为Real-time operating system，翻译过来就是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2022-02-04T13:39:55.000Z">
+<meta property="article:modified_time" content="2022-02-04T13:42:34.215Z">
+<meta property="article:author" content="ZYen">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '如何对ARM架构下的VxWorks系统固件进行修复？',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-04 21:42:34'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://img-blog.csdnimg.cn/59ff1b82a08c4567938e7b522a9607a8.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAWlllbjEyMTM4,size_20,color_FFFFFF,t_70,g_se,x_16" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">欢迎来到ZYen的小世界！</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">如何对ARM架构下的VxWorks系统固件进行修复？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-04T13:39:55.000Z" title="发表于 2022-02-04 21:39:55">2022-02-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-04T13:42:34.215Z" title="更新于 2022-02-04 21:42:34">2022-02-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/IOT/">IOT</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="如何对ARM架构下的VxWorks系统固件进行修复？"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>随着学习的深入，接触的设备已经慢慢的从一些简单的路由器向其他的智能设备开始扩散，就会碰到更多看起来比较复杂的固件，就比如RTOS的固件，当用常规的方法—-binwalk对它进行解包的时候，并不能直接看见文件系统里面的内容，笔者一开始接触这类系统十分的困惑，在研究完修改的过程之后，记录一下学习的过程。</p>
+</blockquote>
+<h2 id="RTOS介绍"><a href="#RTOS介绍" class="headerlink" title="RTOS介绍"></a>RTOS介绍</h2><p>RTOS的全称为Real-time operating system，翻译过来就是实时操作系统的意思，这里的<strong>实时指的是某个程序的响应时间严格限制在某段时间内完成</strong>，简单来说，就是设置了一个坎，在时间结束之前必须跨过这个坎，建立这么一个基本的概念就算到位了，其实在现代的操作系统当中，除了某种特点的情况才需要用到RTOS，因为在硬件能力慢慢提升的情况下，这种差距就显得没有那么大，除非在AI，自动化，航空等领域，否则其他的情况，人们很难去感受到它们的差距在哪，更多详细的内容参考下面的链接：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%AE%9E%E6%97%B6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">实时操作系统</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/86861756">什么是实时操作系统（RTOS）</a></li>
+<li><a target="_blank" rel="noopener" href="https://techfactory.itmedia.co.jp/tf/articles/1705/17/news004.html">七大特性能看懂什么是RTOS</a></li>
+</ul>
+<p>总的来说，没有说实时操作系统和非实时操作系统的速度，吞吐量和规模一定谁比谁快，谁比谁精巧，只是在某种应用场景下，那种系统更加的符合应用场景就使用那种系统罢了</p>
+<h2 id="开始修复固件"><a href="#开始修复固件" class="headerlink" title="开始修复固件"></a>开始修复固件</h2><p>此处用的是TP-LINK TL-WDR7660来练手，毕竟网上还是有点资料，出现问题也能参考参考，链接：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://service.tp-link.com.cn/detail_download_7989.html">固件链接</a></li>
+</ul>
+<h3 id="固件分析"><a href="#固件分析" class="headerlink" title="固件分析"></a>固件分析</h3><p>先通过binwalk识别一下，识别到是uImage和一堆LZMA压缩过的数据，前者是U-boot，后者可能里面存在文件系统，其中比较大的很有可能就是文件系统，就比如0x10400这个，还有这是arm架构的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">➜   binwalk wdr7660gv1-cn-up_2019-08-30_10.37.02.bin</span><br><span class="line"></span><br><span class="line">DECIMAL       HEXADECIMAL     DESCRIPTION</span><br><span class="line">--------------------------------------------------------------------------------</span><br><span class="line">512           0x200           uImage header, header size: 64 bytes, header CRC: 0xDEFB3DA, created: 2018-09-05 07:32:57, image size: 48928 bytes, Data Address: 0x41C00000, Entry Point: 0x41C00000, data CRC: 0x2A36A3AD, OS: Firmware, CPU: ARM, image <span class="built_in">type</span>: Standalone Program, compression <span class="built_in">type</span>: lzma, image name: <span class="string">&quot;U-Boot 2014.04-rc1-gdbb6e75-dirt]&quot;</span></span><br><span class="line">576           0x240           LZMA compressed data, properties: 0x5D, dictionary size: 67108864 bytes, uncompressed size: -1 bytes</span><br><span class="line">66560         0x10400         LZMA compressed data, properties: 0x6E, dictionary size: 8388608 bytes, uncompressed size: 3869672 bytes</span><br><span class="line">1422400       0x15B440        LZMA compressed data, properties: 0x5A, dictionary size: 8388608 bytes, uncompressed size: 7170 bytes</span><br><span class="line">1423926       0x15BA36        LZMA compressed data, properties: 0x5A, dictionary size: 8388608 bytes, uncompressed size: 200 bytes</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="提取文件系统"><a href="#提取文件系统" class="headerlink" title="提取文件系统"></a>提取文件系统</h3><p>用dd命令提取，下面是它的命令解析：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">bs=字节数      一次读写的比特数（默认：512）；</span><br><span class="line">count=块数     只将复制指定数量的输入块</span><br><span class="line">ibs=字节数     一次读取的字节数（默认：512)</span><br><span class="line"><span class="keyword">if</span>=文件         从指定文件而非标准输入来进行读取</span><br><span class="line">obs=字节数      一次写入指定字节数（默认：512）</span><br><span class="line">of=文件         写入到指定文件而非标准输出</span><br><span class="line">skip=块数       在输入开始处跳过指定的 ibs 大小的块数</span><br></pre></td></tr></table></figure>
+
+<p>这里提一下count的计算：1422400-66560=1355840</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">➜  dd <span class="keyword">if</span>=wdr7660gv1-cn-up_2019-08-30_10.37.02.bin of=ac7660.lzma bs=1 skip=66560 count=1355840</span><br><span class="line">记录了1355840+0 的读入</span><br><span class="line">记录了1355840+0 的写出</span><br><span class="line">1355840字节（1.4 MB，1.3 MiB）已复制，3.98426 s，340 kB/s</span><br></pre></td></tr></table></figure>
+
+<p>但是解压有点问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜  firware lzma -d ac76601.lzma </span><br><span class="line">lzma: ac76601.lzma: 压缩数据已损坏</span><br></pre></td></tr></table></figure>
+
+<p>用010打开之后，发现后面有一段空数据，怀疑是空数据影响到了，重新计算长度，0x15a477-0x10400=0x14a077（1351799），重新提取</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜  dd <span class="keyword">if</span>=wdr7660gv1-cn-up_2019-08-30_10.37.02.bin of=ac7660.lzma bs=1 skip=66560 count=1351799</span><br><span class="line">记录了1351799+0 的读入</span><br><span class="line">记录了1351799+0 的写出</span><br><span class="line">1351799字节（1.4 MB，1.3 MiB）已复制，7.3005 s，185 kB/s</span><br><span class="line">➜  lzma -d ac7660.lzma </span><br></pre></td></tr></table></figure>
+
+<p>再次binwalk获得信息，得知这是小端，所以确定这是ARM little的架构，或者直接采用binwalk -A来进行识别CPU的架构</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">➜  binwalk ac7660 | grep &quot;endian&quot;</span><br><span class="line">3728344       0x38E3D8        SHA256 hash constants, little endian</span><br><span class="line">3784928       0x39C0E0        SHA256 hash constants, little endian</span><br><span class="line">3847576       0x3AB598        CRC32 polynomial table, little endian</span><br><span class="line">➜  binwalk -A ac7660</span><br><span class="line"></span><br><span class="line">DECIMAL       HEXADECIMAL     DESCRIPTION</span><br><span class="line">--------------------------------------------------------------------------------</span><br><span class="line">84            0x54            ARM instructions, function prologue</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>打开IDA进行分析，设置Processor type为ARM Little-endian</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/1.jpg" class="">
+
+<p>之后就来到关键的第一步：定位程序入口点</p>
+<h3 id="如何定位程序入口点"><a href="#如何定位程序入口点" class="headerlink" title="如何定位程序入口点"></a>如何定位程序入口点</h3><p>由于此文件是外部链接符号，导致只能用下面这种方法来确认程序的入口点，如果确定文件是内部链接符号，可以参考下面的链接进行定位：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://paper.seebug.org/771/#1">基于 VxWorks 的嵌入式设备固件分析方法介绍</a></li>
+</ul>
+<p>上图确认之后，IDA会弹窗要选择入口地址，在不知道之前先填入0：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/3.jpg" class="">
+
+<p>进来看到IDA开头，也就是ROM中地址0的位置，在此处全部转换成代码（按键c）</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/4.jpg" class="">
+
+<p>完成之后的结果如下，可以看到用红色框框住的数值就是VxWorks的程序入口点，为什么这么说呢？来看一下VxWorks的启动流程就明白了！</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/5.jpg" class="">
+
+<p>通过查阅资料得知，sysInit() 是VxWorks系统执行的第一段代码，它的主要工作是：关中断、设置usrInit()的栈、调用usrInit()，可以看到这个函数有几个关键的点：设置栈以及调用，所以必然会有两个很明显的操作，<strong>对栈进行操作，以及一次跳转（不保存返回地址的）</strong>，根据这个特征，可以看到此处确实存在这么一个现象，同时在VxWorks当中，程序一开始的入口地址和栈指针是指向同一个地方的，为什么等下再说，所以压栈的那个数值就是一直在找的程序入口地址，为下图的R0中的值：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/6.jpg" class="">
+
+<p>回过头看看这个问题：为什么程序一开始的入口地址和栈指针是指向同一个地方？</p>
+<p>根据官方的文档（16页），initial stack是给usrInit()以及usrRoot()分配的栈空间，所以sysInit()中对栈的操作是给usrInit()做准备的，而usrInit()是程序的入口函数：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/8.jpg" class="">
+
+
+
+<p>所以初始化栈的地址同时也是固件的内存加载地址：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/7.png" class="">
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cxybb.com/article/DanielLee_ustb/9098675">VxWorks启动代码usrInit ()函数分析 </a></li>
+<li><a target="_blank" rel="noopener" href="https://www.vxworks7.com/2021/10/vxworks7-boot-sequence.html">VxWorks 7的启动顺序</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.uio.no/studier/emner/matnat/fys/FYS4220/h11/undervisningsmateriale/laboppgaver-rt/vxworks_architecture_supplement_6.2.pdf">VxWorks官方文档</a></li>
+</ul>
+<p>得到入口地址之后就可以重新打开IDA，在选择入口地址处填入刚刚得到的入口地址即可：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/18.png" class="">
+
+<h2 id="修复程序函数名"><a href="#修复程序函数名" class="headerlink" title="修复程序函数名"></a>修复程序函数名</h2><p>修复之前得找到符号表，有两种符号表的形式，一种是直接包括在整个文件当中，笔者称为<strong>内部符号表</strong>，还有一种是<strong>外部符号表</strong>，它可能散落在解包之后的某个文件当中，可以通过某个VxWorks特定的函数来定位符号表的位置，就比如在VxWorks中处理任务调度库函数的taskInit：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.ee.ryerson.ca/~courses/ee8205/Data-Sheets/Tornado-VxWorks/vxworks/ref/taskLib.html">VxWorks中taskLib库函数集合</a></li>
+</ul>
+<p>下面分别是内部符号表和外部符号表的示例，内部符号表是NOE77101工控设备的固件中binwalk解压出来名为385的文件，外部还是本文最开始采用的固件</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/ameng929/NOE77101_Firmware/blob/master/FLASH0/wwwroot/conf/exec/NOE77101.bin">NOE77101工控设备固件</a></li>
+</ul>
+<h3 id="内部符号表"><a href="#内部符号表" class="headerlink" title="内部符号表"></a>内部符号表</h3><img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/9.png" class="">
+
+<h3 id="外部符号表"><a href="#外部符号表" class="headerlink" title="外部符号表"></a>外部符号表</h3><p>当在分析的文件当中找不到符号表的时候，就可以考虑是不是在另一个文件当中，通过grep来寻找符号表文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜  grep -r &quot;taskInit&quot;</span><br><span class="line">匹配到二进制文件 _wdr7660gv1-cn-up_2019-08-30_10.37.02.bin.extracted/15CBBA</span><br><span class="line">匹配到二进制文件 _NOE77101.bin.extracted/385</span><br></pre></td></tr></table></figure>
+
+<p>修复程序的函数名，没有固定的脚本，可能每个架构的结构不同会导致脚本有些变化，具体还是看符号表的结构来修复，回到一开始的固件进行分析，先看看开头8个比特，0x00051B29为文件的大小，0x000034E4为符号表中符号的数量，剩下的符号表都是以8个比特来进行排列的</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/10.png" class="">
+
+<p>可以验证一下，0x00051B29为文件的大小：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/11.jpg" class="">
+
+<p>计算的方法：8（开头的8个bit）+ 8（每个符号的大小）* 13540（0x34E4）= 108328（0x1a728）</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/12.jpg" class="">
+
+<p>再回过头来看看符号的每个bit的作用：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/13.png" class="">
+
+<h3 id="符号类型"><a href="#符号类型" class="headerlink" title="符号类型"></a>符号类型</h3><img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/14.png" class="">
+
+<p>具体可以看看下面的链接：</p>
+<p><a target="_blank" rel="noopener" href="http://www.360doc.com/content/13/0526/17/532901_288335598.shtml">符号类型详解</a></p>
+<h3 id="符号的偏移"><a href="#符号的偏移" class="headerlink" title="符号的偏移"></a>符号的偏移</h3><p>符号开始的偏移为0，它将根据下一个符号的其实位置来寻找此符号到那里结束：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/15.jpg" class="">
+
+<p>知道了这些信息其实就可以写脚本了，大致的功能为将字符串从符号偏移中取出来，然后根据符号在内存中的位置来修改段的名字以及转换成伪代码，最后创建函数，脚本如下（在python2+IDA7.0版本下运行，python3+IDA7.5一直有点问题）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> idautils</span><br><span class="line"><span class="keyword">import</span> idc</span><br><span class="line"><span class="keyword">import</span> idaapi</span><br><span class="line"></span><br><span class="line">symfile_path = <span class="string">&#x27;&#x27;</span>    </span><br><span class="line">symbols_table_start = <span class="number">8</span></span><br><span class="line">strings_table_start = <span class="number">0x1a728</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(symfile_path, <span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    symfile_contents = f.read()</span><br><span class="line"></span><br><span class="line">symbols_table = symfile_contents[symbols_table_start:strings_table_start]</span><br><span class="line">strings_table = symfile_contents[strings_table_start:]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_string_by_offset</span>(<span class="params">offset</span>):</span></span><br><span class="line">    index = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">if</span> strings_table[offset+index] != <span class="string">&#x27;\x00&#x27;</span>:</span><br><span class="line">            index += <span class="number">1</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">return</span> strings_table[offset:offset+index]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_symbols_metadata</span>():</span></span><br><span class="line">    symbols = []</span><br><span class="line">    <span class="keyword">for</span> offset <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="built_in">len</span>(symbols_table),<span class="number">8</span>):</span><br><span class="line">        symbol_item = symbols_table[offset:offset+<span class="number">8</span>]</span><br><span class="line">        flag = symbol_item[<span class="number">0</span>]</span><br><span class="line">        string_offset = <span class="built_in">int</span>(symbol_item[<span class="number">1</span>:<span class="number">4</span>].encode(<span class="string">&#x27;hex&#x27;</span>), <span class="number">16</span>)</span><br><span class="line">        string_name = get_string_by_offset(string_offset)</span><br><span class="line">        target_address = <span class="built_in">int</span>(symbol_item[-<span class="number">4</span>:].encode(<span class="string">&#x27;hex&#x27;</span>), <span class="number">16</span>)</span><br><span class="line">        symbols.append((flag, string_name, target_address))</span><br><span class="line">    <span class="keyword">return</span> symbols</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_symbols</span>(<span class="params">symbols_meta_data</span>):</span></span><br><span class="line">    <span class="keyword">for</span> flag, string_name, target_address <span class="keyword">in</span> symbols_meta_data:</span><br><span class="line">        idc.MakeName(target_address, string_name)</span><br><span class="line">        <span class="keyword">if</span> flag == <span class="string">&#x27;\x54&#x27;</span>:</span><br><span class="line">            idc.MakeCode(target_address)</span><br><span class="line">            idc.MakeFunction(target_address)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    symbols_metadata = get_symbols_metadata()</span><br><span class="line">    add_symbols(symbols_metadata)</span><br></pre></td></tr></table></figure>
+
+<p>最后修复的结果，之后就能进行漏洞的挖掘了：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/16.png" class="">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>修复VxWorks的流程大致如下，还有一些小的问题需要注意一下：</p>
+<img src="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/17.png" class="">
+
+<ul>
+<li>要在确定好架构的大小端再进行分析，否则反汇编出来的指令看不出程序的入口点</li>
+<li>可能每个架构的符号表的格式不太一样，并不是每个都能直接跑脚本就能出来的，还是得知其然知其所以然</li>
+</ul>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://eqqie.cn/index.php/archives/1780">基于 VxWorks 的 TP-Link 路由器固件的通用解压与修复思路</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/p1Kk/idc-idapython"> idc-IDA_python</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:1193161901@qq.com">ZYen</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/">http://example.com/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">欢迎来到ZYen的小世界！</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/IOT/">IOT</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/01/25/%E4%BB%8E%E5%B9%BF%E4%B8%9C%E7%9C%81%E5%BC%BA%E7%BD%91%E6%9D%AF-girlfriend%E4%B8%AD%E7%9C%8Brealloc%E7%9A%84%E8%89%BA%E6%9C%AF/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">从广东省强网杯--girlfriend中看realloc的艺术</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/25/%E5%A6%82%E4%BD%95%E4%BB%8E%E4%B8%B2%E5%8F%A3%E8%8E%B7%E5%8F%96%E5%88%B0%E8%AE%BE%E5%A4%87%E7%9A%84shell%EF%BC%9F/" title="如何从串口获取到设备的shell？"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-25</div><div class="title">如何从串口获取到设备的shell？</div></div></a></div><div><a href="/2021/10/05/RV110W%E8%B7%AF%E7%94%B1%E5%99%A8%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-2020%E5%B9%B4%E5%BC%BA%E7%BD%91%E6%9D%AF%E8%B5%9B%E9%A2%98/" title="RV110W路由器漏洞复现/2020年强网杯赛题"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-10-05</div><div class="title">RV110W路由器漏洞复现/2020年强网杯赛题</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://img-blog.csdnimg.cn/59ff1b82a08c4567938e7b522a9607a8.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAWlllbjEyMTM4,size_20,color_FFFFFF,t_70,g_se,x_16" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">ZYen</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">你是在寻找散落在人间的星星吗？</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#RTOS%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">RTOS介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">开始修复固件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BA%E4%BB%B6%E5%88%86%E6%9E%90"><span class="toc-number">2.1.</span> <span class="toc-text">固件分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E5%8F%96%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">2.2.</span> <span class="toc-text">提取文件系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%AE%9A%E4%BD%8D%E7%A8%8B%E5%BA%8F%E5%85%A5%E5%8F%A3%E7%82%B9"><span class="toc-number">2.3.</span> <span class="toc-text">如何定位程序入口点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E7%A8%8B%E5%BA%8F%E5%87%BD%E6%95%B0%E5%90%8D"><span class="toc-number">3.</span> <span class="toc-text">修复程序函数名</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E9%83%A8%E7%AC%A6%E5%8F%B7%E8%A1%A8"><span class="toc-number">3.1.</span> <span class="toc-text">内部符号表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%96%E9%83%A8%E7%AC%A6%E5%8F%B7%E8%A1%A8"><span class="toc-number">3.2.</span> <span class="toc-text">外部符号表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%A6%E5%8F%B7%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.3.</span> <span class="toc-text">符号类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%A6%E5%8F%B7%E7%9A%84%E5%81%8F%E7%A7%BB"><span class="toc-number">3.4.</span> <span class="toc-text">符号的偏移</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-number">5.</span> <span class="toc-text">参考链接</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/" title="如何对ARM架构下的VxWorks系统固件进行修复？"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="如何对ARM架构下的VxWorks系统固件进行修复？"/></a><div class="content"><a class="title" href="/2022/02/04/%E5%A6%82%E4%BD%95%E5%AF%B9ARM%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84VxWorks%E7%B3%BB%E7%BB%9F%E5%9B%BA%E4%BB%B6%E8%BF%9B%E8%A1%8C%E4%BF%AE%E5%A4%8D%EF%BC%9F/" title="如何对ARM架构下的VxWorks系统固件进行修复？">如何对ARM架构下的VxWorks系统固件进行修复？</a><time datetime="2022-02-04T13:39:55.000Z" title="发表于 2022-02-04 21:39:55">2022-02-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/25/%E4%BB%8E%E5%B9%BF%E4%B8%9C%E7%9C%81%E5%BC%BA%E7%BD%91%E6%9D%AF-girlfriend%E4%B8%AD%E7%9C%8Brealloc%E7%9A%84%E8%89%BA%E6%9C%AF/" title="从广东省强网杯--girlfriend中看realloc的艺术"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从广东省强网杯--girlfriend中看realloc的艺术"/></a><div class="content"><a class="title" href="/2022/01/25/%E4%BB%8E%E5%B9%BF%E4%B8%9C%E7%9C%81%E5%BC%BA%E7%BD%91%E6%9D%AF-girlfriend%E4%B8%AD%E7%9C%8Brealloc%E7%9A%84%E8%89%BA%E6%9C%AF/" title="从广东省强网杯--girlfriend中看realloc的艺术">从广东省强网杯--girlfriend中看realloc的艺术</a><time datetime="2022-01-25T09:25:13.000Z" title="发表于 2022-01-25 17:25:13">2022-01-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/25/%E5%A6%82%E4%BD%95%E4%BB%8E%E4%B8%B2%E5%8F%A3%E8%8E%B7%E5%8F%96%E5%88%B0%E8%AE%BE%E5%A4%87%E7%9A%84shell%EF%BC%9F/" title="如何从串口获取到设备的shell？"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="如何从串口获取到设备的shell？"/></a><div class="content"><a class="title" href="/2022/01/25/%E5%A6%82%E4%BD%95%E4%BB%8E%E4%B8%B2%E5%8F%A3%E8%8E%B7%E5%8F%96%E5%88%B0%E8%AE%BE%E5%A4%87%E7%9A%84shell%EF%BC%9F/" title="如何从串口获取到设备的shell？">如何从串口获取到设备的shell？</a><time datetime="2022-01-25T08:28:57.000Z" title="发表于 2022-01-25 16:28:57">2022-01-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/17/%E5%91%A8%E6%8A%A5%EF%BC%81%E6%9C%88%E6%8A%A5%EF%BC%81%E5%B9%B4%E6%8A%A5%EF%BC%81/" title="周报！月报！年报！"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="周报！月报！年报！"/></a><div class="content"><a class="title" href="/2021/11/17/%E5%91%A8%E6%8A%A5%EF%BC%81%E6%9C%88%E6%8A%A5%EF%BC%81%E5%B9%B4%E6%8A%A5%EF%BC%81/" title="周报！月报！年报！">周报！月报！年报！</a><time datetime="2021-11-17T15:14:38.000Z" title="发表于 2021-11-17 23:14:38">2021-11-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/10/22/64%E4%BD%8D%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8Ffini%E5%8A%AB%E6%8C%81/" title="64位静态程序fini劫持"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="64位静态程序fini劫持"/></a><div class="content"><a class="title" href="/2021/10/22/64%E4%BD%8D%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8Ffini%E5%8A%AB%E6%8C%81/" title="64位静态程序fini劫持">64位静态程序fini劫持</a><time datetime="2021-10-22T14:45:47.000Z" title="发表于 2021-10-22 22:45:47">2021-10-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By ZYen</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
