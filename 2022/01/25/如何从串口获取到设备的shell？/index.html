@@ -168,9 +168,9 @@
 
 <p>回头来看，异步就是没有时钟信号来同步发送端和接收端，用通俗一点的话来说就是发送端可以在任何时候向接收端发送数据，什么意思呢？我们思考在Windows下进行键盘输入这个例子，我们什么时候按下键盘，操作系统是不会知道的，当我们按下某个键的时候，比如按下z，键盘就会往消息队列发送消息也就是z的ascii码，这就是异步传输！</p>
 <p>那它是怎么知道一个消息的开头的呢？答：<strong>Start Bit</strong>会告诉它，不传输数据的时候它保持高电平，当开始传输的时候，它将拉低电平通知设备准备接收数据，在结束的时候拉高电平，也就是<strong>Stop Bits</strong>，可问题又来了，它不与设备同步，那接收数据的时候怎么知道传输的速率是多少呢？答：波特率，当设备接收到电平从高电平向低电平跃迁的时候，就以波特率所对应的频率进行接收数据（波特率是事先就设置好的）</p>
-<p>下图后面两位分别是奇偶校验，校验的方法和TCP/IP协议里的奇偶校验一样，不做赘述，<code>stop bit</code>则是将低电平拉高到高电平的信号，具体可以参考下面的链接：</p>
-<p><a target="_blank" rel="noopener" href="https://www.analog.com/cn/analog-dialogue/articles/uart-a-hardware-communication-protocol.html">UART：了解通用异步接收器/发送器的硬件通信协议</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.allaboutcircuits.com/technical-articles/back-to-basics-the-universal-asynchronous-receiver-transmitter-uart/">回归基础：通用异步接收器/发送器 (UART)</a></p>
+<p>下图后面两位分别是奇偶校验，校验的方法和TCP&#x2F;IP协议里的奇偶校验一样，不做赘述，<code>stop bit</code>则是将低电平拉高到高电平的信号，具体可以参考下面的链接：</p>
+<p><a target="_blank" rel="noopener" href="https://www.analog.com/cn/analog-dialogue/articles/uart-a-hardware-communication-protocol.html">UART：了解通用异步接收器&#x2F;发送器的硬件通信协议</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.allaboutcircuits.com/technical-articles/back-to-basics-the-universal-asynchronous-receiver-transmitter-uart/">回归基础：通用异步接收器&#x2F;发送器 (UART)</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.51cto.com/edges/143223">总算有点眉目了：同步传输与异步传输</a></p>
 <p>数据包结构图：</p>
 <img src="/2022/01/25/%E5%A6%82%E4%BD%95%E4%BB%8E%E4%B8%B2%E5%8F%A3%E8%8E%B7%E5%8F%96%E5%88%B0%E8%AE%BE%E5%A4%87%E7%9A%84shell%EF%BC%9F/1.png" class="">
@@ -216,7 +216,7 @@
 </ul>
 <p>随便一个工具都可以连接，确定好COM口号，就可以使用指定的波特率来连接，这里波特率多试几个常见的就好，一般都可以试出来的</p>
 <blockquote>
-<p>查看COM口的方法：此电脑 =&gt; 管理 =&gt; 设备管理器 =&gt; 端口</p>
+<p>查看COM口的方法：此电脑 &#x3D;&gt; 管理 &#x3D;&gt; 设备管理器 &#x3D;&gt; 端口</p>
 </blockquote>
 <img src="/2022/01/25/%E5%A6%82%E4%BD%95%E4%BB%8E%E4%B8%B2%E5%8F%A3%E8%8E%B7%E5%8F%96%E5%88%B0%E8%AE%BE%E5%A4%87%E7%9A%84shell%EF%BC%9F/6.png" class="">
 
